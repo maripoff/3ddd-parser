@@ -16,7 +16,7 @@ async function main() {
     console.info('Fetching', TARGET);
     const html = await fetchHtml(TARGET);
     const items = parseVacancies(html);
-    console.info(`Parsed ${items.length} vacancies.`);
+    console.info(`${items.length} последних вакансий`);
 
     // Print first 10 vacancies with title, full URL and payment (or note if none)
     let i = 1;
@@ -25,9 +25,9 @@ async function main() {
         ? vacancy.path
         : `https://3ddd.ru${vacancy.path || ''}`;
       const payment = vacancy.salary && vacancy.salary.trim() ? vacancy.salary : 'оплата не указана';
-      console.log(`${i++}: ${vacancy.title}`);
-      console.log(`   ${url}`);
-      console.log(`   ${payment}`);
+      console.log(`${i++}: Вакансия: ${vacancy.title}`);
+      console.log(`   Ссылка: ${url}`);
+      console.log(`   Оплата: ${payment}`);
     }
 
     await fs.mkdirp(path.dirname(OUT_PATH));
@@ -37,7 +37,7 @@ async function main() {
     console.info('Fetching', TARGET_TASKS);
     const htmlTasks = await fetchHtml(TARGET_TASKS);
     const tasks = parseTasks(htmlTasks);
-    console.info(`Parsed ${tasks.length} tasks.`);
+    console.info(`${tasks.length} последних задач`);
 
     // Print first 10 tasks with title, full URL and payment (or note if none)
     i = 1;
@@ -46,9 +46,9 @@ async function main() {
         ? task.path
         : `https://3ddd.ru${task.path || ''}`;
       const payment = task.salary && task.salary.trim() ? task.salary : 'оплата не указана';
-      console.log(`${i++}: ${task.title}`);
-      console.log(`   ${url}`);
-      console.log(`   ${payment}`);
+      console.log(`${i++}: Заказ: ${task.title}`);
+      console.log(`   Ссылка: ${url}`);
+      console.log(`   Оплата: ${payment}`);
     }
 
     await fs.mkdirp(path.dirname(OUT_PATH_TASKS));

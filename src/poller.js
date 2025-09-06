@@ -42,7 +42,11 @@ async function handleTarget(target) {
     const html = await fetchHtml(target.url);
     const items = target.parser(html);
 
-    console.info(`Parsed ${items.length} ${target.name.toLowerCase()}.`);
+    if (target.name === 'Вакансии') {
+      console.info('Проверил новые вакансии.');
+    } else {
+      console.info('Проверил новые заказы.');
+    }
 
     const oldItems = await readJsonSafe(target.outPath);
     const oldLinks = new Set(extractLinks(oldItems));
@@ -52,9 +56,10 @@ async function handleTarget(target) {
     if (added.length === 0) {
       console.log(`${target.name}: новых ${target.name === 'Вакансии' ? 'вакансий' : 'заказов'} нет`);
     } else {
+      const itemLabel = target.name === 'Вакансии' ? 'Вакансия' : 'Заказ';
       for (const a of added) {
         const payment = a.salary && a.salary.trim() ? a.salary : 'оплата не указана';
-        console.log(`${target.newLabel} Название: ${a.title}`);
+        console.log(`${target.newLabel} ${itemLabel}: ${a.title}`);
         console.log(`Ссылка: ${a.path}`);
         console.log(`Оплата: ${payment}`);
       }
