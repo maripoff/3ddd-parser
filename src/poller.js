@@ -38,7 +38,7 @@ function extractLinks(items) {
 
 async function handleTarget(target) {
   try {
-    console.info(`Fetching ${target.url}`);
+    console.info(`Проверяю: ${target.url}`);
     const html = await fetchHtml(target.url);
     const items = target.parser(html);
 
@@ -59,7 +59,9 @@ async function handleTarget(target) {
       const itemLabel = target.name === 'Вакансии' ? 'Вакансия' : 'Заказ';
       for (const a of added) {
         const payment = a.salary && a.salary.trim() ? a.salary : 'оплата не указана';
-        console.log(`${target.newLabel} ${itemLabel}: ${a.title}`);
+        console.log('');
+        console.log(`${target.newLabel}`);
+        console.log(`${itemLabel}: ${a.title}`);
         console.log(`Ссылка: ${a.path}`);
         console.log(`Оплата: ${payment}`);
       }

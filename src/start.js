@@ -13,10 +13,10 @@ const OUT_PATH_TASKS = path.join('data', 'tasks.json');
 async function main() {
   try {
     // === Vacancies ===
-    console.info('Fetching', TARGET);
+    console.info(`Проверяю: ${TARGET}`);
     const html = await fetchHtml(TARGET);
     const items = parseVacancies(html);
-    console.info(`${items.length} последних вакансий`);
+    console.info(`${items.length} последних вакансий:`);
 
     // Print first 10 vacancies with title, full URL and payment (or note if none)
     let i = 1;
@@ -34,10 +34,10 @@ async function main() {
     await fs.writeFile(OUT_PATH, JSON.stringify(items, null, 2), 'utf8');
 
     // === Tasks (orders) ===
-    console.info('Fetching', TARGET_TASKS);
+    console.info(`Проверяю: ${TARGET_TASKS}`);
     const htmlTasks = await fetchHtml(TARGET_TASKS);
     const tasks = parseTasks(htmlTasks);
-    console.info(`${tasks.length} последних задач`);
+    console.info(`${tasks.length} последних задач:`);
 
     // Print first 10 tasks with title, full URL and payment (or note if none)
     i = 1;
