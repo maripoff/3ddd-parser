@@ -4,7 +4,7 @@ const { fetchHtml } = require('./fetch-html');
 const { parseVacancies } = require('./parse-vacancies');
 const { parseTasks } = require('./parse-tasks');
 
-const INTERVAL_MS = parseInt(process.env.POLL_INTERVAL_MS || '60000', 10);
+const INTERVAL_MS = parseInt(process.env.POLL_INTERVAL_MS || '30000', 10);
 
 const TARGETS = [
   {
