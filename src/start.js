@@ -18,10 +18,16 @@ async function main() {
     const items = parseVacancies(html);
     console.info(`Parsed ${items.length} vacancies.`);
 
-    // Print first 10 vacancies
+    // Print first 10 vacancies with title, full URL and payment (or note if none)
     let i = 1;
     for (const vacancy of items.slice(0, 10)) {
+      const url = vacancy.path && (vacancy.path.startsWith('http://') || vacancy.path.startsWith('https://'))
+        ? vacancy.path
+        : `https://3ddd.ru${vacancy.path || ''}`;
+      const payment = vacancy.salary && vacancy.salary.trim() ? vacancy.salary : 'оплата не указана';
       console.log(`${i++}: ${vacancy.title}`);
+      console.log(`   ${url}`);
+      console.log(`   ${payment}`);
     }
 
     await fs.mkdirp(path.dirname(OUT_PATH));
