@@ -1,5 +1,5 @@
 @echo off
-REM poll-once.cmd - run one iteration of the poller (fetch & compare once)
+REM check-once.cmd - run one iteration of the checker (fetch & compare once)
 cd /d "%~dp0"
 echo Running: node src/poller.js --once %*
 node src/poller.js --once %*

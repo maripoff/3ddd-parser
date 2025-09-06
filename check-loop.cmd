@@ -1,5 +1,5 @@
 @echo off
-REM poll-loop.cmd - run the poller continuously (every INTERVAL_MS)
+REM check-loop.cmd - run the checker continuously (every INTERVAL_MS)
 cd /d "%~dp0"
 echo Running: node src/poller.js %*
 node src/poller.js %*
