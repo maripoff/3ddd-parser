@@ -66,9 +66,12 @@ function parseVacancies(html) {
     const salaryRaw = priceTd.text().trim() || null;
     const salary = salaryRaw ? salaryRaw.replace(/\s+/g, ' ').trim() : null;
 
-    // Build minimal item with fields requested: relative path, title, salary
+    // Build minimal item with fields requested: absolute path (full URL), title, salary
+    const fullPath = href
+      ? (href.startsWith('http://') || href.startsWith('https://') ? href : new URL(href, 'https://3ddd.ru').toString())
+      : null;
     const item = {
-      path: href || null,
+      path: fullPath,
       title: title || null,
       salary: salary || null
     };
