@@ -25,7 +25,8 @@ async function main() {
         ? vacancy.path
         : `https://3ddd.ru${vacancy.path || ''}`;
       const payment = vacancy.salary && vacancy.salary.trim() ? vacancy.salary : 'оплата не указана';
-      console.log(`${i++}: Вакансия: ${vacancy.title}`);
+      const cleanVacancyTitle = vacancy.title ? vacancy.title.replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim() : vacancy.title;
+      console.log(`${i++}: Вакансия: ${cleanVacancyTitle}`);
       console.log(`   Ссылка: ${url}`);
       console.log(`   Оплата: ${payment}`);
     }
@@ -46,7 +47,8 @@ async function main() {
         ? task.path
         : `https://3ddd.ru${task.path || ''}`;
       const payment = task.salary && task.salary.trim() ? task.salary : 'оплата не указана';
-      console.log(`${i++}: Заказ: ${task.title}`);
+      const cleanTaskTitle = task.title ? task.title.replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim() : task.title;
+      console.log(`${i++}: Заказ: ${cleanTaskTitle}`);
       console.log(`   Ссылка: ${url}`);
       console.log(`   Оплата: ${payment}`);
     }

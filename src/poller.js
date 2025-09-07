@@ -64,7 +64,8 @@ async function handleTarget(target) {
           : `https://3ddd.ru${a.path || ''}`;
         console.log('');
         console.log(`${target.newLabel}`);
-        console.log(`${itemLabel}: ${a.title} ${fullUrl}`);
+        const cleanTitle = a.title ? a.title.replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim() : a.title;
+        console.log(`${itemLabel}: ${cleanTitle}`);
         console.log(`Ссылка: ${fullUrl}`);
         console.log(`Оплата: ${payment}`);
       }
