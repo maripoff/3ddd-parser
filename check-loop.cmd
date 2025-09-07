@@ -1,8 +1,8 @@
 @echo off
 REM check-loop.cmd - run the checker continuously (every INTERVAL_MS)
 cd /d "%~dp0"
-echo Running: node src/poller.js %*
-node src/poller.js %*
+echo Running: node src/check.js %*
+node src/check.js %*
 if %ERRORLEVEL% neq 0 (
   echo.
   echo Script exited with error %ERRORLEVEL%.
