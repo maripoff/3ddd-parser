@@ -59,10 +59,13 @@ async function handleTarget(target) {
       const itemLabel = target.name === 'Вакансии' ? 'Вакансия' : 'Заказ';
       for (const a of added) {
         const payment = a.salary && a.salary.trim() ? a.salary : 'оплата не указана';
+        const fullUrl = a.path && (a.path.startsWith('http://') || a.path.startsWith('https://'))
+          ? a.path
+          : `https://3ddd.ru${a.path || ''}`;
         console.log('');
         console.log(`${target.newLabel}`);
-        console.log(`${itemLabel}: ${a.title}`);
-        console.log(`Ссылка: ${a.path}`);
+        console.log(`${itemLabel}: ${a.title} ${fullUrl}`);
+        console.log(`Ссылка: ${fullUrl}`);
         console.log(`Оплата: ${payment}`);
       }
     }
