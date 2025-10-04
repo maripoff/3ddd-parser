@@ -1,3 +1,4 @@
+// @ts-check
 const cheerio = require('cheerio');
 const { URL } = require('url');
 

@@ -1,3 +1,4 @@
+// @ts-check
 const path = require('path');
 const fs = require('fs-extra');
 const { fetchHtml } = require('./fetch-html');

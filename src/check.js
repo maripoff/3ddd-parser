@@ -1,8 +1,11 @@
+// @ts-check
 const path = require('path');
 const fs = require('fs-extra');
 const { fetchHtml } = require('./fetch-html');
 const { parseVacancies } = require('./parse-vacancies');
 const { parseTasks } = require('./parse-tasks');
+const { sendTgNotification } = require('./send-tg-notification');
+
 
 const INTERVAL_MS = parseInt(process.env.POLL_INTERVAL_MS || '30000', 10);
 
@@ -62,12 +65,24 @@ async function handleTarget(target) {
         const fullUrl = a.path && (a.path.startsWith('http://') || a.path.startsWith('https://'))
           ? a.path
           : `https://3ddd.ru${a.path || ''}`;
+        
         console.log('');
         console.log(`${target.newLabel}`);
         const cleanTitle = a.title ? a.title.replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim() : a.title;
         console.log(`${itemLabel}: ${cleanTitle}`);
         console.log(`Ссылка: ${fullUrl}`);
         console.log(`Оплата: ${payment}`);
+
+        const emoji = target.name === 'Вакансии' ? '💼' : '📋';
+        const telegramMessage = `${emoji} *${target.newLabel}*
+
+*${itemLabel}:* ${cleanTitle}
+
+*Оплата:* ${payment}
+
+[Перейти к ${target.name === 'Вакансии' ? 'вакансии' : 'заказу'}](${fullUrl})`;
+
+        await sendTgNotification(telegramMessage);
       }
     }
 
