@@ -3,7 +3,7 @@ Description=3DDD Parser Timer
 Requires={{SERVICE_NAME}}.service
 
 [Timer]
-OnCalendar=*:0/5
+OnCalendar=*:0/{{INTERVAL_MINUTES}}
 Persistent=true
 
 [Install]

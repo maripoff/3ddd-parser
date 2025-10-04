@@ -2,6 +2,36 @@
 
 set -e
 
+# Default values
+INTERVAL_MINUTES=5
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --interval)
+            INTERVAL_MINUTES="$2"
+            if ! [[ "$INTERVAL_MINUTES" =~ ^[0-9]+$ ]] || [[ "$INTERVAL_MINUTES" -lt 1 ]]; then
+                echo "Error: --interval must be a positive integer (minutes)"
+                exit 1
+            fi
+            shift 2
+            ;;
+        --help|-h)
+            echo "Usage: $0 [--interval MINUTES]"
+            echo ""
+            echo "Options:"
+            echo "  --interval MINUTES    Set timer interval in minutes (default: 5)"
+            echo "  --help, -h           Show this help message"
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Use --help for usage information"
+            exit 1
+            ;;
+    esac
+done
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -41,6 +71,7 @@ SERVICE_NAME="3ddd-parser"
 print_info "Installing 3DDD Parser systemd service..."
 print_info "Current directory: $CURRENT_DIR"
 print_info "Current user: $CURRENT_USER"
+print_info "Timer interval: $INTERVAL_MINUTES minutes"
 
 # Check if npm is available and get its path
 NPM_PATH=$(command -v npm)
@@ -83,7 +114,7 @@ if [[ ! -f "etc/systemd-timer.template" ]]; then
     exit 1
 fi
 
-sed "s|{{SERVICE_NAME}}|$SERVICE_NAME|g" etc/systemd-timer.template > "$TIMER_FILE"
+sed "s|{{SERVICE_NAME}}|$SERVICE_NAME|g; s|{{INTERVAL_MINUTES}}|$INTERVAL_MINUTES|g" etc/systemd-timer.template > "$TIMER_FILE"
 
 # Check if service already exists and handle reinstallation
 if systemctl list-unit-files "${SERVICE_NAME}.timer" &>/dev/null; then
@@ -130,7 +161,7 @@ print_info "Checking timer status..."
 sudo systemctl status "${SERVICE_NAME}.timer" --no-pager
 
 print_info "Installation completed successfully!"
-print_info "The service will run every 5 minutes."
+print_info "The service will run every $INTERVAL_MINUTES minutes."
 print_info ""
 print_info "Useful commands:"
 print_info "  Check timer status: sudo systemctl status ${SERVICE_NAME}.timer"
