@@ -3,7 +3,7 @@ const fs = require('fs-extra');
 const { fetchHtml } = require('./fetch-html');
 const { parseVacancies } = require('./parse-vacancies');
 const { parseTasks } = require('./parse-tasks');
-
+const { sendTelegram } = require('./telegram');
 const TARGET = 'https://3ddd.ru/work/vacancies';
 const OUT_PATH = path.join('data', 'vacancies.json');
 
@@ -12,13 +12,14 @@ const OUT_PATH_TASKS = path.join('data', 'tasks.json');
 
 async function main() {
   try {
+    await sendTelegram('Готов к работе!');
     // === Vacancies ===
     console.info(`Проверяю: ${TARGET}`);
     const html = await fetchHtml(TARGET);
     const items = parseVacancies(html);
     console.info(`${items.length} последних вакансий:`);
 
-    // Print first 10 vacancies with title, full URL and payment (or note if none)
+    // Print first 10 vacancies with title, full URL, payment and date (or note if none)
     let i = 1;
     for (const vacancy of items.slice(0, 10)) {
       const url = vacancy.path && (vacancy.path.startsWith('http://') || vacancy.path.startsWith('https://'))
@@ -29,6 +30,7 @@ async function main() {
       console.log(`${i++}: Вакансия: ${cleanVacancyTitle}`);
       console.log(`   Ссылка: ${url}`);
       console.log(`   Оплата: ${payment}`);
+      console.log(`   Дата: ${vacancy.date || vacancy.dateText || 'неизвестно'}`);
     }
 
     await fs.mkdirp(path.dirname(OUT_PATH));
@@ -40,7 +42,7 @@ async function main() {
     const tasks = parseTasks(htmlTasks);
     console.info(`${tasks.length} последних задач:`);
 
-    // Print first 10 tasks with title, full URL and payment (or note if none)
+    // Print first 10 tasks with title, full URL, payment and date (or note if none)
     i = 1;
     for (const task of tasks.slice(0, 10)) {
       const url = task.path && (task.path.startsWith('http://') || task.path.startsWith('https://'))
@@ -51,6 +53,7 @@ async function main() {
       console.log(`${i++}: Заказ: ${cleanTaskTitle}`);
       console.log(`   Ссылка: ${url}`);
       console.log(`   Оплата: ${payment}`);
+      console.log(`   Дата: ${task.date || task.dateText || 'неизвестно'}`);
     }
 
     await fs.mkdirp(path.dirname(OUT_PATH_TASKS));

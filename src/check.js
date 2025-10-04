@@ -51,10 +51,37 @@ async function handleTarget(target) {
     const oldItems = await readJsonSafe(target.outPath);
     const oldLinks = new Set(extractLinks(oldItems));
 
-    const added = items.filter(i => i.path && !oldLinks.has(i.path));
+    // Determine the maximum timestamp present in saved items (if any)
+    const oldTimestamps = oldItems.map(it => it.dateTs).filter(n => typeof n === 'number' && !Number.isNaN(n));
+    const maxOldTs = oldTimestamps.length ? Math.max(...oldTimestamps) : null;
+
+    // Consider only items whose path is not already saved (new links on the list)
+    const addedRaw = items.filter(i => i.path && !oldLinks.has(i.path));
+
+    // Filter by date: an item is considered "really new" if its parsed date (dateTs)
+    // is greater than maxOldTs. If dateTs is missing or maxOldTs is null, treat as new.
+    const added = [];
+    const ignoredAsOld = [];
+    for (const a of addedRaw) {
+      const ts = a.dateTs;
+      if (ts !== null && ts !== undefined && maxOldTs !== null) {
+        // Treat same-day entries as new as well (show when ts >= maxOldTs)
+        if (ts >= maxOldTs) {
+          added.push(a);
+        } else {
+          ignoredAsOld.push(a);
+        }
+      } else {
+        // No timestamp available or nothing to compare to — treat as new (conservative)
+        added.push(a);
+      }
+    }
 
     if (added.length === 0) {
       console.log(`${target.name}: новых ${target.name === 'Вакансии' ? 'вакансий' : 'заказов'} нет`);
+      if (ignoredAsOld.length) {
+        console.log(`(Игнорировано ${ignoredAsOld.length} записи(й) — старые записи переместились в первые 10)`);
+      }
     } else {
       const itemLabel = target.name === 'Вакансии' ? 'Вакансия' : 'Заказ';
       for (const a of added) {
@@ -68,6 +95,10 @@ async function handleTarget(target) {
         console.log(`${itemLabel}: ${cleanTitle}`);
         console.log(`Ссылка: ${fullUrl}`);
         console.log(`Оплата: ${payment}`);
+        console.log(`Дата: ${a.date || a.dateText || 'неизвестно'}`);
+      }
+      if (ignoredAsOld.length) {
+        console.log(`(Игнорировано ${ignoredAsOld.length} записи(й) — старые записи переместились в первые 10)`);
       }
     }
 

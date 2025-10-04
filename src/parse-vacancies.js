@@ -1,5 +1,6 @@
 const cheerio = require('cheerio');
 const { URL } = require('url');
+const { parseDateTextToObj } = require('./parse-date');
 
 /**
  * Vacancy typedef — fields extracted from the main vacancies page.
@@ -39,6 +40,7 @@ function parseVacancies(html) {
 
     const dateEl = t.find('thead tr th div .date').first();
     const dateText = dateEl.text().trim() || null;
+    const dateObj = parseDateTextToObj(dateText);
 
     // location is often part before the comma in dateText (e.g. "Москва, 28 авг.")
     let location = null;
@@ -73,7 +75,10 @@ function parseVacancies(html) {
     const item = {
       path: fullPath,
       title: title || null,
-      salary: salary || null
+      salary: salary || null,
+      dateText: dateText || null,
+      date: dateObj ? dateObj.date : null,
+      dateTs: dateObj ? dateObj.dateTs : null
     };
 
     // Only include real vacancy rows (title + href)
