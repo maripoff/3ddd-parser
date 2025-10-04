@@ -1,0 +1,15 @@
+[Unit]
+Description=3DDD Parser Service
+After=network.target
+
+[Service]
+Type=oneshot
+User={{USER}}
+WorkingDirectory={{WORKING_DIR}}
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/npm run run:once
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
