@@ -7,7 +7,7 @@ Type=oneshot
 User={{USER}}
 WorkingDirectory={{WORKING_DIR}}
 Environment=NODE_ENV=production
-ExecStart=/usr/bin/npm run run:once
+ExecStart={{NPM_PATH}} run run:once
 StandardOutput=journal
 StandardError=journal
 

@@ -42,11 +42,14 @@ print_info "Installing 3DDD Parser systemd service..."
 print_info "Current directory: $CURRENT_DIR"
 print_info "Current user: $CURRENT_USER"
 
-# Check if npm is available
-if ! command -v npm &> /dev/null; then
+# Check if npm is available and get its path
+NPM_PATH=$(command -v npm)
+if [[ -z "$NPM_PATH" ]]; then
     print_error "npm not found. Please install Node.js and npm first."
     exit 1
 fi
+
+print_info "Found npm at: $NPM_PATH"
 
 # Check if package.json exists
 if [[ ! -f "package.json" ]]; then
@@ -69,7 +72,7 @@ if [[ ! -f "etc/systemd-service.template" ]]; then
     exit 1
 fi
 
-sed "s|{{USER}}|$CURRENT_USER|g; s|{{WORKING_DIR}}|$CURRENT_DIR|g" etc/systemd-service.template > "$SERVICE_FILE"
+sed "s|{{USER}}|$CURRENT_USER|g; s|{{WORKING_DIR}}|$CURRENT_DIR|g; s|{{NPM_PATH}}|$NPM_PATH|g" etc/systemd-service.template > "$SERVICE_FILE"
 
 # Create systemd timer file from template
 TIMER_FILE="/tmp/${SERVICE_NAME}.timer"
@@ -81,6 +84,29 @@ if [[ ! -f "etc/systemd-timer.template" ]]; then
 fi
 
 sed "s|{{SERVICE_NAME}}|$SERVICE_NAME|g" etc/systemd-timer.template > "$TIMER_FILE"
+
+# Check if service already exists and handle reinstallation
+if systemctl list-unit-files "${SERVICE_NAME}.timer" &>/dev/null; then
+    print_info "Existing installation detected. Updating service..."
+    
+    # Stop and disable existing timer and service
+    if systemctl is-active --quiet "${SERVICE_NAME}.timer"; then
+        print_info "Stopping existing timer..."
+        sudo systemctl stop "${SERVICE_NAME}.timer"
+    fi
+    
+    if systemctl is-enabled --quiet "${SERVICE_NAME}.timer"; then
+        print_info "Disabling existing timer..."
+        sudo systemctl disable "${SERVICE_NAME}.timer"
+    fi
+    
+    if systemctl is-active --quiet "${SERVICE_NAME}.service"; then
+        print_info "Stopping existing service..."
+        sudo systemctl stop "${SERVICE_NAME}.service"
+    fi
+else
+    print_info "New installation detected."
+fi
 
 # Copy files to systemd directory (requires sudo)
 print_info "Installing systemd files (requires sudo)..."
