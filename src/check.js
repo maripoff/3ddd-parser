@@ -5,7 +5,7 @@ const { fetchHtml } = require('./fetch-html');
 const { parseVacancies } = require('./parse-vacancies');
 const { parseTasks } = require('./parse-tasks');
 const { sendTgNotification } = require('./send-tg-notification');
-
+const { HISTORY_SIZE } = require('./config');
 
 const INTERVAL_MS = parseInt(process.env.POLL_INTERVAL_MS || '30000', 10);
 
@@ -15,15 +15,15 @@ const TARGETS = [
     url: 'https://3ddd.ru/work/vacancies',
     parser: parseVacancies,
     outPath: path.join('data', 'vacancies.json'),
-    newLabel: 'Новая вакансия!'
+    newLabel: 'Новая вакансия!',
   },
   {
     name: 'Заказы',
     url: 'https://3ddd.ru/work/tasks',
     parser: parseTasks,
     outPath: path.join('data', 'tasks.json'),
-    newLabel: 'Новый заказ!'
-  }
+    newLabel: 'Новый заказ!',
+  },
 ];
 
 async function readJsonSafe(p) {
@@ -36,7 +36,7 @@ async function readJsonSafe(p) {
 }
 
 function extractLinks(items) {
-  return items.map(i => i.path).filter(Boolean);
+  return items.map((i) => i.path).filter(Boolean);
 }
 
 async function handleTarget(target) {
@@ -54,21 +54,31 @@ async function handleTarget(target) {
     const oldItems = await readJsonSafe(target.outPath);
     const oldLinks = new Set(extractLinks(oldItems));
 
-    const added = items.filter(i => i.path && !oldLinks.has(i.path));
+    const added = items.filter((i) => i.path && !oldLinks.has(i.path));
 
     if (added.length === 0) {
-      console.log(`${target.name}: новых ${target.name === 'Вакансии' ? 'вакансий' : 'заказов'} нет`);
+      console.log(
+        `${target.name}: новых ${target.name === 'Вакансии' ? 'вакансий' : 'заказов'} нет`,
+      );
     } else {
       const itemLabel = target.name === 'Вакансии' ? 'Вакансия' : 'Заказ';
       for (const a of added) {
-        const payment = a.salary && a.salary.trim() ? a.salary : 'оплата не указана';
-        const fullUrl = a.path && (a.path.startsWith('http://') || a.path.startsWith('https://'))
-          ? a.path
-          : `https://3ddd.ru${a.path || ''}`;
-        
+        const payment =
+          a.salary && a.salary.trim() ? a.salary : 'оплата не указана';
+        const fullUrl =
+          a.path &&
+          (a.path.startsWith('http://') || a.path.startsWith('https://'))
+            ? a.path
+            : `https://3ddd.ru${a.path || ''}`;
+
         console.log('');
         console.log(`${target.newLabel}`);
-        const cleanTitle = a.title ? a.title.replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim() : a.title;
+        const cleanTitle = a.title
+          ? a.title
+              .replace(/https?:\/\/\S+/g, '')
+              .replace(/\s+/g, ' ')
+              .trim()
+          : a.title;
         console.log(`${itemLabel}: ${cleanTitle}`);
         console.log(`Ссылка: ${fullUrl}`);
         console.log(`Оплата: ${payment}`);
@@ -86,13 +96,64 @@ async function handleTarget(target) {
       }
     }
 
-    // Save current snapshot (overwrite)
+    // Add createdAt timestamp only to truly new items
+    const now = new Date().toISOString();
+    const newItemsWithTimestamp = added.map(item => ({
+      ...item,
+      createdAt: now
+    }));
+
+    // Update existing items with current data but preserve their original createdAt
+    const currentItemsMap = new Map();
+    items.forEach(item => {
+      if (item.path) {
+        currentItemsMap.set(item.path, item);
+      }
+    });
+
+    const updatedExistingItems = oldItems.map(oldItem => {
+      if (oldItem.path && currentItemsMap.has(oldItem.path)) {
+        // Item still exists - update with current data but keep original createdAt
+        const currentItem = currentItemsMap.get(oldItem.path);
+        return {
+          ...currentItem,
+          createdAt: oldItem.createdAt || now // Preserve original createdAt, fallback to now if missing
+        };
+      }
+      return oldItem; // Item no longer exists in current fetch, keep as is
+    });
+
+    // Merge updated existing items with new items
+    const updatedHistory = [...updatedExistingItems, ...newItemsWithTimestamp];
+    
+    // Remove duplicates based on path and keep only the most recent HISTORY_SIZE items
+    const uniqueHistory = [];
+    const seenPaths = new Set();
+    
+    // Process in reverse order to keep the most recent items when deduplicating
+    for (let i = updatedHistory.length - 1; i >= 0; i--) {
+      const item = updatedHistory[i];
+      if (item.path && !seenPaths.has(item.path)) {
+        seenPaths.add(item.path);
+        uniqueHistory.unshift(item);
+        
+        // Stop when we reach the history size limit
+        if (uniqueHistory.length >= HISTORY_SIZE) {
+          break;
+        }
+      }
+    }
+
+    // Save updated history
     await fs.mkdirp(path.dirname(target.outPath));
-    await fs.writeFile(target.outPath, JSON.stringify(items, null, 2), 'utf8');
+    await fs.writeFile(target.outPath, JSON.stringify(uniqueHistory, null, 2), 'utf8');
 
     return { addedCount: added.length, total: items.length };
   } catch (err) {
-    console.error(`Error handling ${target.name}:`, err && err.message ? err.message : err);
+    console.error(
+      `Error handling ${target.name}:`,
+      err && err.message ? err.message : err,
+    );
     return { addedCount: 0, total: 0 };
   }
 }
@@ -121,5 +182,5 @@ if (require.main === module) {
 
 module.exports = {
   runOnce,
-  loop
+  loop,
 };

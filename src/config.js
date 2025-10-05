@@ -20,4 +20,5 @@ module.exports = {
   TELEGRAM_CHAT_ID: process.env.TELEGRAM_CHAT_ID,
   RETENTION_DAYS: parseIntEnv('RETENTION_DAYS', 30),
   TIMEOUT_MS: parseIntEnv('TIMEOUT_MS', 10000),
+  HISTORY_SIZE: parseIntEnv('HISTORY_SIZE', 1000),
 };
